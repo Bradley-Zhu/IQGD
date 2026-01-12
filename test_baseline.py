@@ -205,8 +205,8 @@ def main():
             model, init_ctx, cs1, target, phs_time, device=device
         )
 
-        print(f"  Metrics: MSE={metrics[0]:.6f}, PSNR={metrics[1]:.2f}, SSIM={metrics[2]:.4f}")
-        all_metrics.append(metrics)
+        print(f"  Metrics: MSE={metrics[0].item():.6f}, PSNR={metrics[1].item():.2f}, SSIM={metrics[2].item():.4f}")
+        all_metrics.append(metrics.cpu() if metrics.is_cuda else metrics)
 
         # Visualize
         target_encoded = F.avg_pool2d(target, kernel_size=2, stride=2)
@@ -217,17 +217,20 @@ def main():
         )
 
     # Summary
-    all_metrics = torch.stack(all_metrics)
-    mean_metrics = all_metrics.mean(dim=0)
-    std_metrics = all_metrics.std(dim=0)
+    if len(all_metrics) > 0:
+        all_metrics = torch.stack(all_metrics)
+        mean_metrics = all_metrics.mean(dim=0)
+        std_metrics = all_metrics.std(dim=0)
 
-    print("\n" + "=" * 50)
-    print("BASELINE RESULTS SUMMARY")
-    print("=" * 50)
-    print(f"MSE:  {mean_metrics[0]:.6f} ± {std_metrics[0]:.6f}")
-    print(f"PSNR: {mean_metrics[1]:.2f} ± {std_metrics[1]:.2f}")
-    print(f"SSIM: {mean_metrics[2]:.4f} ± {std_metrics[2]:.4f}")
-    print("=" * 50)
+        print("\n" + "=" * 50)
+        print("BASELINE RESULTS SUMMARY")
+        print("=" * 50)
+        print(f"MSE:  {mean_metrics[0]:.6f} ± {std_metrics[0]:.6f}")
+        print(f"PSNR: {mean_metrics[1]:.2f} ± {std_metrics[1]:.2f}")
+        print(f"SSIM: {mean_metrics[2]:.4f} ± {std_metrics[2]:.4f}")
+        print("=" * 50)
+    else:
+        print("No metrics collected!")
 
 
 if __name__ == "__main__":
